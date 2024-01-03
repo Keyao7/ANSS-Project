@@ -4,6 +4,8 @@ from cryptography.hazmat.primitives.asymmetric import ec
 import subprocess
 from cryptography.hazmat.primitives.asymmetric import rsa
 
+
+# V long-term public private key pair
 V_Lk = ec.generate_private_key(ec.SECP256R1(), default_backend())
 V_LK = V_Lk.public_key()
 
@@ -67,6 +69,53 @@ with open('RSA_private_key.pem', 'wb') as f:
     f.write(RSA_private_key_pem)
 with open('RSA_public_key.pem', 'wb') as f:
     f.write(RSA_public_key_pem)
+
+
+# Pseudonym public private key pair
+
+# Pseudonym 1
+P_sk = ec.generate_private_key(ec.SECP256R1(), default_backend())
+P_pK = P_sk.public_key()
+
+P_sk_pem = P_sk.private_bytes(
+    encoding=serialization.Encoding.PEM,
+    format=serialization.PrivateFormat.PKCS8,
+    encryption_algorithm=serialization.NoEncryption()
+)
+
+with open('V_Pseudonym_private_key_1.pem', 'wb') as f:
+    f.write(P_sk_pem)
+
+P_pK_pem = P_pK.public_bytes(
+    encoding=serialization.Encoding.PEM,
+    format=serialization.PublicFormat.SubjectPublicKeyInfo
+)
+
+with open('V_Pseudonym_public_key_1.pem', 'wb') as f:
+    f.write(P_pK_pem)
+
+# Pseudonym 2
+P_sk = ec.generate_private_key(ec.SECP256R1(), default_backend())
+P_pK = P_sk.public_key()
+
+P_sk_pem = P_sk.private_bytes(
+    encoding=serialization.Encoding.PEM,
+    format=serialization.PrivateFormat.PKCS8,
+    encryption_algorithm=serialization.NoEncryption()
+)
+
+with open('V_Pseudonym_private_key_2.pem', 'wb') as f:
+    f.write(P_sk_pem)
+
+P_pK_pem = P_pK.public_bytes(
+    encoding=serialization.Encoding.PEM,
+    format=serialization.PublicFormat.SubjectPublicKeyInfo
+)
+
+with open('V_Pseudonym_public_key_2.pem', 'wb') as f:
+    f.write(P_pK_pem)
+
+
 
 
 local_file = 'oem_public_key.pem'

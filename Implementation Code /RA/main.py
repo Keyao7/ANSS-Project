@@ -8,15 +8,23 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
 import json
 from cryptography.hazmat.primitives.asymmetric import padding
+import re
 
-# 从PEM文件读取密钥
-with open('symmetric_key.pem', 'rb') as file:
-    lines = file.readlines()
-    # 假设密钥是文件的第二行
-    pem_key = lines[1].strip()
+# load gsk
 
-# 解码密钥
-key = base64.urlsafe_b64decode(pem_key)
+with open("gsk.pem", "r") as key_file:
+    pem_data = key_file.read()
+
+header_pattern = re.compile(r'-*BEGIN [^-]*-*\n')
+footer_pattern = re.compile(r'\n-*END [^-]*-*\n?')
+
+
+pem_data = header_pattern.sub('', pem_data)
+pem_data = footer_pattern.sub('', pem_data)
+
+
+pem_data = pem_data.replace('\n', '')
+pem_data_encode = pem_data.encode()
 
 def register (json_data):
     data = json.loads(json_data)
@@ -26,10 +34,6 @@ def register (json_data):
         backend=default_backend()
     )
     V_LK_bytes = data["LK"].encode()
-    V_LK = serialization.load_pem_public_key(
-        V_LK_bytes,
-        backend=default_backend()
-    )
 
     LTCA_LK_signed = base64.b64decode(data["LTCA_LK_signed"])
 
@@ -52,33 +56,30 @@ def register (json_data):
         V_RSA_bytes,
         backend=default_backend()
     )
-    print(key)
     encrypted_key = V_RSA.encrypt(
-        key,
+        pem_data_encode,
         padding.OAEP(
-        mgf=padding.MGF1(algorithm=hashes.SHA256()),
-        algorithm=hashes.SHA256(),
-        label=None
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
         )
     )
     encrypted_key_base64 = base64.b64encode(encrypted_key).decode('utf-8')
-    data = {
-        "k_enc": encrypted_key_base64
-    }
+    data = {"k_enc": encrypted_key_base64}
     json_data = json.dumps(data, indent=4)
-    
-
-
     return json_data
-host_addr = '192.168.81.130'
-host_port = 8802
+
+
+
+RA_addr = '192.168.81.130'
+RA_port = 8802
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
 
 context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
 context.load_cert_chain(certfile='TLS_cert.pem', keyfile='TLS_private_key.pem')
 
-server_socket.bind((host_addr, host_port))
+server_socket.bind((RA_addr, RA_port))
 server_socket.listen(5)
 
 while True:

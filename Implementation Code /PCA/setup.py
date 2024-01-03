@@ -1,5 +1,3 @@
-from cryptography.fernet import Fernet
-import base64
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -7,15 +5,6 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.x509.oid import NameOID
 import datetime
 from cryptography.hazmat.primitives import hashes
-
-key = Fernet.generate_key()
-
-encoded_key = base64.urlsafe_b64encode(key)
-
-with open('symmetric_key.pem', 'wb') as file:
-    file.write(b'-----BEGIN SYMMETRIC KEY-----\n')
-    file.write(encoded_key)
-    file.write(b'\n-----END SYMMETRIC KEY-----\n')
 
 private_key = rsa.generate_private_key(
     public_exponent=65537,
@@ -62,4 +51,3 @@ cert_pem = cert.public_bytes(serialization.Encoding.PEM)
 
 with open('TLS_cert.pem', 'wb') as f:
     f.write(cert_pem)
-
